@@ -4,6 +4,7 @@ import { useUser } from '@clerk/nextjs'
 import UseProject from '@/hooks/use-project'
 import { ExternalLink, Github } from 'lucide-react'
 import Link from 'next/link'
+import CommitLog from './commit-log'
 
 const dashboardPage = () => {
     const { user } = useUser()
@@ -44,7 +45,7 @@ const dashboardPage = () => {
         </div>
 
         <div className="mt-5"></div>
-        Contact Us
+       <CommitLog/>
         </div>
     )
 }
