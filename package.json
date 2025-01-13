@@ -6,10 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "github": "ts-node lib/github.ts",
+    "gemini": "ts-node lib/gemini.ts"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.9.9",
+    "@google/generative-ai": "^0.21.0",
     "@hookform/resolvers": "^3.10.0",
     "@prisma/client": "^6.2.1",
     "@radix-ui/react-accordion": "^1.2.2",
@@ -44,6 +47,7 @@
     "@trpc/react": "^9.27.4",
     "@trpc/react-query": "^11.0.0-rc.446",
     "@trpc/server": "^11.0.0-rc.446",
+    "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
@@ -53,6 +57,7 @@
     "lucide-react": "^0.469.0",
     "next": "15.1.4",
     "next-themes": "^0.4.4",
+    "octokit": "^4.1.0",
     "prisma": "^6.2.1",
     "react": "^19.0.0",
     "react-day-picker": "^8.10.1",
@@ -66,6 +71,7 @@
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "trpc": "^0.11.3",
+    "usehooks-ts": "^3.1.0",
     "vaul": "^1.1.2",
     "zod": "^3.24.1"
   },
@@ -78,6 +84,7 @@
     "eslint-config-next": "15.1.4",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }
