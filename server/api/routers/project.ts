@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import { pullCommit } from "@/lib/github";
+import { checkCredits, indexGithubRepo } from "@/lib/github-loader";
 
 export const ProjectRouter = createTRPCRouter({
   createProject: protectedProcedure
@@ -46,7 +47,7 @@ export const ProjectRouter = createTRPCRouter({
           return newProject;
         });
         await pullCommit(project.id)
-
+        await indexGithubRepo(project.id, input.githubUrl, input.githubToken)
         return project;
 
       } catch (error) {
@@ -76,10 +77,107 @@ export const ProjectRouter = createTRPCRouter({
     getCommits:protectedProcedure.input(z.object({
       projectId:z.string()
     })).query(async ({ctx,input}) => {
+      pullCommit(input.projectId).then().catch(console.error)
       return await ctx.db.commit.findMany({
         where:{
           projectId:input.projectId
         }
       })
+    }),
+  //  savedAnswer: protectedProcedure.input(z.object({
+  //    projectId:z.string()
+
+  //  }))
+  savedAnswer: protectedProcedure.input(z.object({
+   projectId:z.string(),
+   question:z.string(),
+   answer:z.string(),
+   filesReferences:z.any()
+
+  })).mutation(async ({ctx,input})=>{
+    const user = await ctx.user;
+    return await ctx.db.question.create({
+      data:{
+        answer:input.answer,
+        filesReferences:input.filesReferences,
+        projectId:input.projectId,
+        question:input.question,
+        userId:user.userId!
+
+      }
     })
+  }),
+
+  getQuestions:protectedProcedure.input(z.object({
+    projectId:z.string()
+  })).query(async ({ctx,input})=>{
+          return await ctx.db.question.findMany({
+            where:{
+              projectId:input.projectId
+            },
+            include:{
+              user:true
+            },
+            orderBy:{
+            createdAt:'desc'
+            }
+          })
+  }),
+  archiveProject: protectedProcedure.input(z.object({
+    projectId:z.string()
+  })).mutation(async ({ctx,input})=>{
+    return await ctx.db.project.update({
+       where:{
+        id:input.projectId
+       },
+       data:{
+        deletedAt: new Date()
+       }
+    })
+  }),
+  getTeamMembers:protectedProcedure.input(z.object({
+    projectId:z.string()
+  })).query(async ({ctx,input})=>{
+    return ctx.db.userToProject.findMany({
+      where:{
+        projectId:input.projectId
+      },
+      include:{
+        user:true
+      }
+    })
+  }),
+
+  getMyCredits: protectedProcedure.query(async ({ ctx }) => {
+    const user = await ctx.user;
+    return await ctx.db.user.findUnique({
+      where: {
+        id: user.userId!
+      },
+      select: {
+       credits: true
+      }
+    });
+  }),
+  checkCredits:protectedProcedure.input(z.object({
+githubUrl:z.string(),
+githubToken:z.string().optional()
+
+  })).mutation(async ({ctx,input})=>{
+    const user = await ctx.user;
+    const fileCount= await checkCredits(input.githubUrl, input.githubToken)
+    const userCredits=await ctx.db.user.findUnique({
+      where:{
+        id: user.userId!
+      },
+      select:{
+        credits:true
+      }
+    })
+
+    return {
+      fileCount,
+      userCredits:userCredits?.credits || 0
+    }
+  })
 });

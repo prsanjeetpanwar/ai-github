@@ -53,7 +53,7 @@ export const pullCommit = async (projectId: string) => {
         if(response.status==="fulfilled"){
             return response.value
         }
-         return "Failed to generate summary"
+        return ""
     })
 
     const commit = await db.commit.createMany({
@@ -64,7 +64,7 @@ export const pullCommit = async (projectId: string) => {
             commitAuthorName: unProcessCommits[index].commitAuthorName,
             commitAuthorAvatar: unProcessCommits[index].commitAuthorAvatar,
             commitDate: unProcessCommits[index].commitDate,
-            summary: summary,
+            summary,
         }))
     });
     return commit
@@ -77,6 +77,7 @@ async function fetchProjectGithubUrl(projectId: string) {
         select: {
             githubUrl: true
         }
+        
     })
     if (!project?.githubUrl) {
         throw new Error(`No githubUrl found for project with id ${projectId}`)
@@ -85,18 +86,14 @@ async function fetchProjectGithubUrl(projectId: string) {
 }
 
 async function summarizeCommit(githubUrl: string, commitHash: string) {
-    try {
-        const { data } = await axios.get(`${githubUrl}/commit/${commitHash}.diff`, {
-            headers: {
-                Accept: 'application/vnd.github.v3.diff'
-            }
-        })
-        const summary = await AiSummarizeCommit(data)
-        return summary || "No summary generated"
-    } catch (error) {
-        console.error(`Error summarizing commit ${commitHash}:`, error)
-        throw error // Propagate the error to be handled by Promise.allSettled
+    const { data } = await axios.get(`${githubUrl}/commit/${commitHash}.diff`, {
+        headers: {
+            Accept: 'application/vnd.github.v3.diff'
+        }
     }
+    )
+    return await AiSummarizeCommit(data) || ""
+
 }
 
 async function filterUnProcessCommits(projectId: string, commitHash: Response[]) {
