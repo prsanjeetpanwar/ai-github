@@ -5,6 +5,40 @@ import { pullCommit } from "@/lib/github";
 import { checkCredits, indexGithubRepo } from "@/lib/github-loader";
 
 export const ProjectRouter = createTRPCRouter({
+
+
+
+  
+  getEmbeddings: protectedProcedure
+  .input(z.object({ projectId: z.string() }))
+  .query(async ({ ctx, input }) => {
+    return ctx.db.sourceCodeEmbedding.findMany({
+      where: { projectId: input.projectId },
+      select: { id: true, fileName: true, summary: true }
+    });
+  }),
+
+  getDependencies: protectedProcedure
+    .input(z.object({ projectId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const embeddings = await ctx.db.sourceCodeEmbedding.findMany({
+        where: { projectId: input.projectId },
+        select: { fileName: true, summary: true }
+      });
+
+      return embeddings.flatMap(embedding => {
+        const dependencies = (embedding.summary.match(/imports?\s+([^\s]+)/gi) || [])
+          .map(dep => dep.split(' ')[1].replace(/['";]/g, ''));
+          
+        return dependencies.map(dep => ({
+          source: embedding.fileName,
+          target: dep
+        }));
+      });
+    }),
+
+
+  
   createProject: protectedProcedure
     .input(z.object({
       name: z.string(),

@@ -9,31 +9,27 @@ datasource db {
 }
 
 model User {
-  id             String          @id @default(uuid())
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  imageUrl       String?
-  firstName      String?
-  lastName       String?
-  emailAddress   String          @unique
-
-  creditAddress  Int             @default(200)
-  credits        Int             @default(200)
-  questionsAsked Question[]
-  userToProject  UserToProject[]
+  id                 String               @id @default(uuid())
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  imageUrl           String?
+  firstName          String?
+  lastName           String?
+  emailAddress       String               @unique
+  creditAddress      Int                  @default(2200)
+  credits            Int                  @default(2200)
+  questionsAsked     Question[]
   stripeTransactions StripeTransactions[]
+  userToProject      UserToProject[]
 }
 
-
 model StripeTransactions {
-  id             String          @id @default(uuid())
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  
-  userId         String
-  user        User        @relation(fields: [userId],references: [id])
-  credits     Int
-
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  credits   Int
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Project {
